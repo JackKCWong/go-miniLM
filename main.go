@@ -34,22 +34,41 @@ func main() {
 	defer tasks.Finalize(m)
 
 
-	r1, err := m.Encode(context.Background(), "see you later", int(bert.MeanPooling))
+	infer1(m)
+	infer2(m)
+}
+
+func infer2(m textencoding.Interface) {
+	fn := func(text string) *textencoding.Response {
+		result, err := m.Encode(context.Background(), text, int(bert.MeanPooling))
+		if err != nil {
+			panic(err)
+		}
+		return &result
+	}
+
+	r1 := fn("see you tomorrow")
+	r2 := fn("see you later")
+
+	fmt.Println(Cosine(r1.Vector.Data().F64(), r2.Vector.Data().F64()))
+}
+
+func infer1(m textencoding.Interface) {
+	r1, err := m.Encode(context.Background(), "see you tomorrow", int(bert.MeanPooling))
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
 
-	f1 := r1.Vector.Data().F32()
+	f1 := r1.Vector.Data().F64()
 
 	r2, err := m.Encode(context.Background(), "see you later", int(bert.MeanPooling))
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
 
-	f2 := r2.Vector.Data().F32()
+	f2 := r2.Vector.Data().F64()
 
-	fmt.Println(f1[:10])
-	fmt.Println(f2[:10])
+	fmt.Println(Cosine(f1, f2))
 }
 
 func Cosine(a []float64, b []float64) (cosine float64, err error) {
