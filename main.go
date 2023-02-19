@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"time"
 
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
 	"github.com/nlpodyssey/cybertron/pkg/tasks"
@@ -40,10 +41,13 @@ func main() {
 
 func infer2(m textencoding.Interface) {
 	fn := func(text string) *textencoding.Response {
+		start := time.Now()
 		result, err := m.Encode(context.Background(), text, int(bert.MeanPooling))
+		elapsed := time.Since(start)
 		if err != nil {
 			panic(err)
 		}
+		fmt.Printf("elapsed: %s\n", elapsed)
 		return &result
 	}
 

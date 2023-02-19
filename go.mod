@@ -3,7 +3,7 @@ module go-miniLM
 go 1.20
 
 require (
-	github.com/nlpodyssey/cybertron v0.1.2
+	github.com/nlpodyssey/cybertron v0.1.3-0.20230219111654-ef2ca134a6d3
 	github.com/rs/zerolog v1.27.0
 )
 
