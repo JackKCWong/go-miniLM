@@ -1,7 +1,3 @@
-// Copyright 2022 The NLP Odyssey Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package main
 
 import (
@@ -19,7 +15,7 @@ import (
 )
 
 func main() {
-	zerolog.SetGlobalLevel(zerolog.NoLevel)
+	zerolog.SetGlobalLevel(zerolog.Disabled)
 
 	modelsDir := "."
 	modelName := textencoding.DefaultModel
@@ -35,37 +31,19 @@ func main() {
 	defer tasks.Finalize(m)
 
 
-	infer1(m)
-	infer2(m)
-}
-
-func infer2(m textencoding.Interface) {
-	fn := func(text string) *textencoding.Response {
-		start := time.Now()
-		result, err := m.Encode(context.Background(), text, int(bert.MeanPooling))
-		elapsed := time.Since(start)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("elapsed: %s\n", elapsed)
-		return &result
-	}
-
-	r1 := fn("see you tomorrow")
-	r2 := fn("see you later")
-
-	fmt.Println(Cosine(r1.Vector.Data().F64(), r2.Vector.Data().F64()))
-}
-
-func infer1(m textencoding.Interface) {
-	r1, err := m.Encode(context.Background(), "see you tomorrow", int(bert.MeanPooling))
+	start := time.Now()
+	r1, err := m.Encode(context.Background(), "see you later", int(bert.MeanPooling))
+	elapsed := time.Since(start)
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
 
+
+	log.Info().Int("elapsed_ms", int(elapsed.Milliseconds())).Send()
+
 	f1 := r1.Vector.Data().F64()
 
-	r2, err := m.Encode(context.Background(), "see you later", int(bert.MeanPooling))
+	r2, err := m.Encode(context.Background(), "see you tomorrow", int(bert.MeanPooling))
 	if err != nil {
 		log.Fatal().Err(err).Send()
 	}
