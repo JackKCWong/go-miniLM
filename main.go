@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	zerolog.SetGlobalLevel(zerolog.Disabled)
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 
 	modelsDir := "."
 	modelName := textencoding.DefaultModel
