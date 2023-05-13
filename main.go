@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sync"
 	"time"
 
 	"github.com/nlpodyssey/cybertron/pkg/models/bert"
@@ -20,7 +21,7 @@ func main() {
 	modelsDir := "."
 	modelName := textencoding.DefaultModel
 	m, err := tasks.Load[textencoding.Interface](&tasks.Config{
-		ModelsDir: modelsDir, 
+		ModelsDir: modelsDir,
 		ModelName: modelName,
 	})
 
@@ -30,26 +31,36 @@ func main() {
 
 	defer tasks.Finalize(m)
 
+	var wg sync.WaitGroup
+	var f1, f2 []float64
 
-	start := time.Now()
-	r1, err := m.Encode(context.Background(), "see you later", int(bert.MeanPooling))
-	elapsed := time.Since(start)
-	if err != nil {
-		log.Fatal().Err(err).Send()
-	}
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		start := time.Now()
+		r1, err := m.Encode(context.Background(), "see you later", int(bert.MeanPooling))
+		elapsed := time.Since(start)
+		if err != nil {
+			log.Fatal().Err(err).Send()
+		}
 
+		log.Info().Int("elapsed_ms", int(elapsed.Milliseconds())).Send()
 
-	log.Info().Int("elapsed_ms", int(elapsed.Milliseconds())).Send()
+		f1 = r1.Vector.Data().F64()
 
-	f1 := r1.Vector.Data().F64()
+	}()
 
-	r2, err := m.Encode(context.Background(), "see you tomorrow", int(bert.MeanPooling))
-	if err != nil {
-		log.Fatal().Err(err).Send()
-	}
+	go func() {
+		defer wg.Done()
+		r2, err := m.Encode(context.Background(), "see you tomorrow", int(bert.MeanPooling))
+		if err != nil {
+			log.Fatal().Err(err).Send()
+		}
 
-	f2 := r2.Vector.Data().F64()
+		f2 = r2.Vector.Data().F64()
+	}()
 
+	wg.Wait()
 	fmt.Println(Cosine(f1, f2))
 }
 
